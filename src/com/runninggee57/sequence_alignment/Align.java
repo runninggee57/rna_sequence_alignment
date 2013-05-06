@@ -14,10 +14,11 @@ public class Align {
 
   public static String seq1 = "", seq2 = "";
 
-  public static int sub_mat[][] = new int[4][4];
   public static ArrayList<Character> symbols = new ArrayList<Character>();
 
   public static GridCell M[][], Ix[][], Iy[][];
+  
+  public static SubMatrix sub;
 
   /**
    * @param args
@@ -29,7 +30,7 @@ public class Align {
     seq2 = seqs[1];
     System.out.println("Sequence 1: " + seq1);
     System.out.println("Sequence 2: " + seq2);
-    readSubFile(SUBFILENAME);
+    sub = new SubMatrix(SUBFILENAME);
     System.out.println("Sub matrix read");
 
     M = new GridCell[seq1.length()][seq2.length()];
@@ -63,7 +64,7 @@ public class Align {
     for (int i = 1; i < seq1.length(); i++) { //rows
       for (int j = 1; j < seq2.length(); j++) { //cols
         // M matrix
-        int sub_value = sub_mat[symbols.indexOf(seq1.charAt(i))][symbols.indexOf(seq2.charAt(j))];
+        int sub_value = sub.get(seq1.charAt(i), seq2.charAt(j));
         int m_score = (M[i - 1][j - 1]).val + sub_value;
         int ix_score = (Ix[i - 1][j - 1]).val + sub_value;
         int iy_score = (Iy[i - 1][j - 1]).val + sub_value;
@@ -211,52 +212,5 @@ public class Align {
     }
     
     return seqs;
-  }
-
-  public static void readSubFile(String filename) {
-    FileInputStream fs;
-    try {
-      fs = new FileInputStream(filename);
-      int in_char = fs.read();
-      int i = 0, j = 0;
-      while (in_char != -1) {
-        String int_str = "";
-        if ((char)in_char == ' ') {
-          // do nothing, space...
-        }
-        else if ((char)in_char == '\n') {
-          i++;
-          j = 0;
-        }
-        else {
-          if (i == 0) { // reading single letters from top row
-            symbols.add((char)in_char);
-            j++;
-          }
-          else if (j == 0) { // reading char identifying a row
-            j++;
-          }
-          else {
-            while ((char)in_char != ' ') {
-              int_str += (char)in_char;
-              in_char = fs.read();
-            }
-
-            sub_mat[i - 1][j - 1] = Integer.parseInt(int_str);
-            j++;
-          }
-        }
-        in_char = fs.read();
-      }
-      fs.close();
-    }
-    catch (FileNotFoundException e) {
-      System.out.println("Could not open file '" + filename + "'");
-      System.exit(-1);
-    }
-    catch (IOException e) {
-      System.out.println("There was an IO error while reading file '" + filename + "'");
-      System.exit(-1);
-    }
   }
 }
