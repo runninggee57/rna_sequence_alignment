@@ -2,7 +2,7 @@ package com.runninggee57.sequence_alignment;
 
 
 public class LinearSpaceAlign {
-  public static final int GAP_PEN = 5;
+  public static final int GAP_PEN = -5;
   public static final String SEQFILENAME = "pair.txt";
   public static final String SUBFILENAME = "nucleotide_sub.txt";
   
@@ -119,7 +119,7 @@ public class LinearSpaceAlign {
     
     rowOne[0] = 0;
     for (int j = 1; j <= Y.length(); j++) {
-      rowOne[j] = rowOne[j] + GAP_PEN;
+      rowOne[j] = rowOne[j-1] + GAP_PEN;
     }
     
     for (int i = 1; i <= X.length(); i++) {
