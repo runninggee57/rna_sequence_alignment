@@ -24,7 +24,9 @@ public class Align {
    */
   public static void main(String[] args) {
 
-    readSeqFile(SEQFILENAME);
+    String seqs[] = readSeqFile(SEQFILENAME);
+    seq1 = seqs[0];
+    seq2 = seqs[1];
     System.out.println("Sequence 1: " + seq1);
     System.out.println("Sequence 2: " + seq2);
     readSubFile(SUBFILENAME);
@@ -171,7 +173,11 @@ public class Align {
 
   }
 
-  public static void readSeqFile(String filename) {
+  public static String[] readSeqFile(String filename) {
+    String[] seqs = new String[2];
+    seqs[0] = "";
+    seqs[1] = "";
+    
     FileInputStream fs;
     try {
       fs = new FileInputStream(filename);
@@ -181,18 +187,18 @@ public class Align {
 
       in_char = fs.read();
       while ((char)in_char != '>') {
-        seq1 += (char)in_char;
+        seqs[0] += (char)in_char;
         in_char = fs.read();
       }
       String white_regex = "[\\s|\\r|\\n]";
-      seq1 = seq1.replaceAll(white_regex, "");
+      seqs[0] = seqs[0].replaceAll(white_regex, "");
 
       in_char = fs.read();
       while (in_char != -1) {
-        seq2 += (char)in_char;
+        seqs[1] += (char)in_char;
         in_char = fs.read();
       }
-      seq2 = seq2.replaceAll(white_regex, "");
+      seqs[1] = seqs[1].replaceAll(white_regex, "");
       fs.close();
     }
     catch (FileNotFoundException e) {
@@ -203,6 +209,8 @@ public class Align {
       System.out.println("There was an IO error while reading file '" + filename + "'");
       System.exit(-1);
     }
+    
+    return seqs;
   }
 
   public static void readSubFile(String filename) {
