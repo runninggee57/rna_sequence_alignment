@@ -33,12 +33,12 @@ public class Align {
     sub = new SubMatrix(SUBFILENAME);
     System.out.println("Sub matrix read");
 
-    M = new GridCell[seq1.length()][seq2.length()];
-    Ix = new GridCell[seq1.length()][seq2.length()];
-    Iy = new GridCell[seq1.length()][seq2.length()];
+    M = new GridCell[seq1.length() + 1][seq2.length() + 1];
+    Ix = new GridCell[seq1.length() + 1][seq2.length() + 1];
+    Iy = new GridCell[seq1.length() + 1][seq2.length() + 1];
 
     // Initialize matrices
-    for (int i = 0; i < seq1.length(); i++){
+    for (int i = 0; i <= seq1.length(); i++){
       if (i == 0) {
         M[i][0] = new GridCell(i, 0, 0);
         Ix[i][0] = new GridCell(i, 0, NEGINFINITY);
@@ -51,7 +51,7 @@ public class Align {
       }
 
     }
-    for (int i = 1; i < seq2.length(); i++) {
+    for (int i = 1; i <= seq2.length(); i++) {
       M[0][i] = new GridCell(0, i, 0, M[0][i-1]);
       Ix[0][i] = new GridCell(0, i, NEGINFINITY, Ix[0][i-1]);
       Iy[0][i] = new GridCell(0, i, NEGINFINITY, Iy[0][i-1]);
@@ -61,10 +61,10 @@ public class Align {
 
     // Populate matrices
     GridCell max_gridcell = new GridCell(-1, -1);
-    for (int i = 1; i < seq1.length(); i++) { //rows
-      for (int j = 1; j < seq2.length(); j++) { //cols
+    for (int i = 1; i <= seq1.length(); i++) { //rows
+      for (int j = 1; j <= seq2.length(); j++) { //cols
         // M matrix
-        int sub_value = sub.get(seq1.charAt(i), seq2.charAt(j));
+        int sub_value = sub.get(seq1.charAt(i - 1), seq2.charAt(j - 1));
         int m_score = (M[i - 1][j - 1]).val + sub_value;
         int ix_score = (Ix[i - 1][j - 1]).val + sub_value;
         int iy_score = (Iy[i - 1][j - 1]).val + sub_value;
@@ -113,21 +113,28 @@ public class Align {
         iy_score = (Iy[i][j - 1]).val - PEN_E;
         max_val = Math.max(m_score, iy_score);
         if (max_val == m_score) {
-          Iy[i][j] = new GridCell(i, j, max_val, Iy[i][j]);
+          Iy[i][j] = new GridCell(i, j, max_val, M[i][j-1]);
           if (max_val > max_gridcell.val) {
             max_gridcell = Iy[i][j];
           }
         }
         else {
-          Iy[i][j] = new GridCell(i, j, max_val, Ix[i][j]);
+          Iy[i][j] = new GridCell(i, j, max_val, Iy[i][j-1]);
           if (max_val > max_gridcell.val) {
-            max_gridcell = Ix[i][j];
+            max_gridcell = Iy[i][j];
           }
         }
       }
     }
     
     System.out.println("Optimal alignment computed, tracing back.");
+    int max = Math.max(Math.max(Ix[seq1.length()][seq2.length()].val, Iy[seq1.length()][seq2.length()].val), M[seq1.length()][seq2.length()].val);
+    if (max == M[seq1.length()][seq2.length()].val)
+      max_gridcell = M[seq1.length()][seq2.length()];
+    else if (max == Ix[seq1.length()][seq2.length()].val)
+      max_gridcell = Ix[seq1.length()][seq2.length()];
+    else if (max == Iy[seq1.length()][seq2.length()].val)
+      max_gridcell = Iy[seq1.length()][seq2.length()];
     
     // Traceback, storing alignment
     boolean done = false;
@@ -137,39 +144,32 @@ public class Align {
     int last_row = -1;
     int last_col = -1;
     while (!done) {
-        if (last_row == cur_cell.row) {
-            new_seq1 += '-';
-        }
-        else {
-            new_seq1 += seq1.charAt(cur_cell.row);
-        }
-
-        if (last_col == cur_cell.col) {
-            new_seq2 += '-';
-        }
-        else {
-            new_seq2 += seq2.charAt(cur_cell.col);
-        }
-
-        last_row = cur_cell.row;
-        last_col = cur_cell.col;
-        cur_cell = cur_cell.bestAdj;
-        if (cur_cell.row == 0 && cur_cell.col == 0) {
-            done = true;
-        }
+      GridCell next = cur_cell.bestAdj;
+      if (next.row == cur_cell.row) {
+        new_seq1 += '-';
+      }
+      else {
+        new_seq1 += seq1.charAt(cur_cell.row - 1);
+      }
+      
+      if (next.col == cur_cell.col) {
+        new_seq2 += '-';
+      }
+      else {
+        new_seq2 += seq2.charAt(cur_cell.col - 1);
+      }
+      cur_cell = next;
+      if (cur_cell.row == 0 && cur_cell.col == 0) {
+          done = true;
+      }
     }
-
-    String final_seq1 = "", final_seq2 = "";
     // Reverse sequences
-    for (int i = new_seq1.length() - 1; i >= 0; i--) {
-        final_seq1 += new_seq1.charAt(i);
-    }
-    for (int i = new_seq2.length() - 1; i >= 0; i--) {
-      final_seq2 += new_seq2.charAt(i);
-    }
+    new_seq1 = new StringBuilder(new_seq1).reverse().toString();
+    new_seq2 = new StringBuilder(new_seq2).reverse().toString();
+    String final_seq1 = "", final_seq2 = "";
     
-    System.out.println("Sequence 1: " + final_seq1);
-    System.out.println("Sequence 2: " + final_seq2);
+    System.out.println("Sequence 1: " + new_seq1);
+    System.out.println("Sequence 2: " + new_seq2);
 
 
   }
